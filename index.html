@@ -1,0 +1,1164 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Construction Expense Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: one narrow column at ordinary phone scale. Deep forest green carries the brand (hero, buttons, selected states), soft white cards sit on a cool grey-green ground. Condensed numerals carry the money. */
+:root{
+  --bg:#f3f6f4;
+  --surface:#ffffff;
+  --fg:#14211b;
+  --muted:#506059;
+  --rule:#dce4df;
+  --line:#7a8a82;
+  --primary:#1b5e42;
+  --on-primary:#ffffff;
+  --hero:#1b5e42;
+  --on-hero:#ffffff;
+  --tint:#e2efe8;
+  --on-tint:#1b5e42;
+  --danger:#b3261e;
+  --on-danger:#ffffff;
+  --font-display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --font-body:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1512;
+    --surface:#17221d;
+    --fg:#e8efeb;
+    --muted:#a8b7af;
+    --rule:#27352d;
+    --line:#6d8077;
+    --primary:#5cbd8b;
+    --on-primary:#06140c;
+    --hero:#1d4d38;
+    --on-hero:#ffffff;
+    --tint:#203a2e;
+    --on-tint:#8fdcb4;
+    --danger:#ff8a80;
+    --on-danger:#14090a;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1512;
+  --surface:#17221d;
+  --fg:#e8efeb;
+  --muted:#a8b7af;
+  --rule:#27352d;
+  --line:#6d8077;
+  --primary:#5cbd8b;
+  --on-primary:#06140c;
+  --hero:#1d4d38;
+  --on-hero:#ffffff;
+  --tint:#203a2e;
+  --on-tint:#8fdcb4;
+  --danger:#ff8a80;
+  --on-danger:#14090a;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--fg);
+  font:500 16px/1.45 var(--font-body);
+  font-variant-numeric:tabular-nums;
+  -webkit-text-size-adjust:100%;
+  padding-block:12px 0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0 0 auto;
+  height:env(safe-area-inset-top,0px);
+  z-index:10;
+  background:var(--bg);
+}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;min-height:48px;-webkit-tap-highlight-color:transparent}
+h1,h2,p{margin:0}
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;padding-bottom:110px;min-width:0}
+#view{display:block;min-width:0}
+#view:focus{outline:none}
+.i{width:24px;height:24px;flex:none}
+
+.eyebrow{font:600 16px/1.3 var(--font-body);color:var(--muted)}
+.sec{font:700 22px/1.1 var(--font-display);letter-spacing:.01em;margin:26px 0 10px}
+
+/* Dashboard */
+.top{display:grid;gap:2px;padding-top:2px}
+.top h1{font:700 24px/1.1 var(--font-display);letter-spacing:.01em}
+.hero{background:var(--hero);color:var(--on-hero);border-radius:16px;padding:18px;overflow:hidden;margin-top:12px}
+.hero .eyebrow{color:inherit;opacity:.85}
+.hero-num{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px;margin-top:2px;font:700 clamp(40px,12.5vw,56px)/1 var(--font-display);overflow-wrap:anywhere}
+.hero-num.long{font-size:clamp(34px,10vw,46px)}
+.hero-num.xlong{font-size:clamp(28px,8vw,38px)}
+.unit{font:600 20px/1 var(--font-display);letter-spacing:.04em;text-transform:uppercase}
+.hero-sub{margin:8px 0 0;font-size:16px;font-weight:600;opacity:.85}
+
+.cards{display:grid;gap:10px}
+.card{display:block;width:100%;text-align:left;padding:14px;border:1px solid var(--rule);border-radius:14px;background:var(--surface);box-shadow:0 1px 3px rgba(20,33,27,.08)}
+.card:active{background:var(--tint)}
+.card-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px}
+.ico{width:44px;height:44px;display:grid;place-items:center;background:var(--tint);color:var(--on-tint);border-radius:12px}
+.card-name{display:block;font:600 16px/1.2 var(--font-body);color:var(--muted)}
+.card-amt{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px;font:700 28px/1.1 var(--font-display);overflow-wrap:anywhere}
+.card-amt .unit{font-size:16px;color:var(--muted)}
+.card>.card-row>.i:last-child{color:var(--muted)}
+.share{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;margin-top:12px}
+.track{display:block;height:8px;border-radius:4px;background:var(--rule);overflow:hidden}
+.fill{display:block;height:100%;background:var(--primary);border-radius:4px}
+.pct{font:700 16px/1 var(--font-body)}
+.share-note{display:block;margin-top:6px;font-size:16px;color:var(--muted);font-weight:500}
+
+.act{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 0;text-align:left;border-bottom:1px solid var(--rule)}
+.act-detail{display:block;font:600 17px/1.25 var(--font-body);overflow-wrap:anywhere}
+.act-meta{display:block;font-size:16px;color:var(--muted);font-weight:500}
+.act-amt{font:700 20px/1 var(--font-display);white-space:nowrap}
+.act-amt .unit{font-size:16px;color:var(--muted)}
+.plain{list-style:none;margin:0;padding:0}
+.note{margin-top:22px;font-size:16px;color:var(--muted)}
+
+.empty{display:grid;gap:10px;justify-items:start;margin-top:12px;padding:16px;border:1.5px dashed var(--line);border-radius:var(--r);background:var(--surface)}
+.empty-t{font:700 20px/1.15 var(--font-display)}
+
+/* Sticky bar (ledger and form) */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);padding:2px 0 12px}
+.bar-row{display:flex;align-items:center;gap:12px}
+.bar h1{font:700 24px/1.1 var(--font-display);letter-spacing:.01em;text-wrap:balance;min-width:0}
+.back{width:48px;height:48px;flex:none;display:grid;place-items:center;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.back:active{background:var(--tint)}
+.bar-total{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0 12px;margin-top:10px}
+.bar-total strong{display:flex;align-items:baseline;gap:6px;font:700 30px/1.1 var(--font-display);overflow-wrap:anywhere}
+.bar-total .unit{font-size:18px;color:var(--muted)}
+
+/* Ledger list */
+.lhead,.lrow{display:grid;grid-template-columns:102px minmax(0,1fr) auto 44px;align-items:center;column-gap:10px}
+.lhead{min-height:40px;font:600 16px/1.2 var(--font-body);color:var(--muted);border-bottom:1px solid var(--rule)}
+.lhead span:nth-child(3){text-align:right}
+.lrow{min-height:60px;padding:4px 0;border-bottom:1px solid var(--rule)}
+.ldate{display:grid;line-height:1.15;min-width:0}
+.ldate .dd{font:700 22px/1 var(--font-display)}
+.ldate .mm{font:500 14px/1.2 var(--font-body);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ldetail{font:600 17px/1.25 var(--font-body);overflow-wrap:anywhere;min-width:0}
+.lamt{font:700 20px/1 var(--font-display);text-align:right;white-space:nowrap}
+.kebab{width:44px;height:44px;display:grid;place-items:center;border-radius:var(--r);color:var(--muted)}
+.kebab:active{background:var(--tint)}
+
+/* Form */
+.form{display:grid;gap:16px;margin-top:16px}
+.form-body{display:grid;gap:16px;min-width:0}
+.field{display:grid;gap:6px;min-width:0}
+.field>label,.field>.lbl{font:600 16px/1.2 var(--font-body);color:var(--muted);padding:0}
+.field input{width:100%;min-height:52px;padding:0 14px;font:600 18px/1.2 var(--font-body);color:var(--fg);background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);appearance:none;-webkit-appearance:none}
+.field input::placeholder{color:var(--muted);opacity:1;text-transform:none;font-weight:500}
+.cap{text-transform:capitalize}
+.dsel{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.8fr) minmax(0,.9fr);gap:8px}
+.sel{position:relative;display:block}
+.sel select{width:100%;min-height:52px;padding:0 32px 0 12px;font:600 18px/1.2 var(--font-body);color:var(--fg);background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);appearance:none;-webkit-appearance:none;text-overflow:ellipsis}
+.sel .i{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--muted);pointer-events:none}
+.amt-wrap{position:relative}
+.amt-wrap input{min-height:56px;padding-right:68px;font:700 26px/1 var(--font-display)}
+.amt-unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);font:600 18px/1 var(--font-display);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);pointer-events:none}
+.echo{min-height:22px;font:600 16px/1.3 var(--font-body);color:var(--primary)}
+.seg-wrap{border:0;margin:0;padding:0;min-width:0;display:grid}
+.seg-wrap legend{display:block;font:600 16px/1.2 var(--font-body);color:var(--muted);padding:0;margin-bottom:8px}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.seg label{position:relative;display:block}
+.seg input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.seg span{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;padding:6px 4px;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surface);font:600 16px/1.1 var(--font-body)}
+.seg input:checked+span{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.seg input:focus-visible+span{outline:3px solid var(--primary);outline-offset:2px}
+.tick{display:none;position:absolute;top:5px;right:5px;width:16px;height:16px}
+.seg input:checked+span .tick{display:block}
+.items{display:grid;gap:12px}
+.item{display:grid;gap:12px;padding:12px;border:1px solid var(--rule);border-radius:14px;background:var(--surface);box-shadow:0 1px 3px rgba(20,33,27,.06)}
+.item-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:24px}
+.item-n{font:700 16px/1 var(--font-body)}
+.rm{width:48px;height:48px;margin:-12px -8px -12px 0;display:grid;place-items:center;border-radius:var(--r);color:var(--muted)}
+.rm:active{background:var(--tint)}
+.err{padding:10px 12px;border:1.5px solid var(--danger);border-radius:var(--r);color:var(--danger);font:600 16px/1.3 var(--font-body)}
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;padding:0 16px;background:var(--primary);color:var(--on-primary);border-radius:var(--r);font:700 18px/1 var(--font-body)}
+.btn-primary:active{filter:brightness(.9)}
+.btn-primary:disabled{opacity:.6;cursor:progress}
+.btn-primary.sm{min-height:48px;font-size:17px;width:auto}
+.btn-secondary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:0 16px;color:var(--primary);border:1.5px solid var(--primary);border-radius:var(--r);font:600 17px/1 var(--font-body)}
+.btn-secondary:active{background:var(--tint)}
+
+/* FAB */
+.fab{position:fixed;z-index:6;width:64px;height:64px;display:grid;place-items:center;
+  bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  right:max(calc(16px + env(safe-area-inset-right,0px)),calc(50vw - 264px));
+  background:var(--primary);color:var(--on-primary);border-radius:20px;box-shadow:0 6px 16px rgba(0,0,0,.28)}
+.fab .i{width:32px;height:32px;stroke-width:3}
+.fab:active{filter:brightness(.9)}
+
+/* Bottom sheet and toast */
+.scrim{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}
+.sheet{width:100%;max-width:560px;display:grid;gap:8px;background:var(--surface);color:var(--fg);border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.2);
+  padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet-t{font:700 20px/1.15 var(--font-display);overflow-wrap:anywhere}
+.sheet-p{font-size:16px;color:var(--muted)}
+.sbtn{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:0 14px;text-align:left;background:var(--bg);border:1px solid var(--rule);border-radius:var(--r);font:600 17px/1.1 var(--font-body)}
+.sbtn:active{background:var(--tint)}
+.sbtn.danger{background:var(--danger);color:var(--on-danger);border-color:var(--danger)}
+.toast{position:fixed;z-index:40;left:50%;top:calc(12px + env(safe-area-inset-top,0px));max-width:calc(100% - 32px);display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--fg);color:var(--bg);border-radius:var(--r);font:600 17px/1.2 var(--font-body);transform:translate(-50%,-160%);opacity:0;pointer-events:none;transition:transform .2s ease,opacity .2s ease}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.btn-link{color:var(--primary);background:none;border:0;padding:0;font:600 15px/1.3 var(--font-body);text-decoration:underline;cursor:pointer;display:inline;min-height:unset}
+.btn-link:hover{filter:brightness(.85)}
+.db-form{display:grid;gap:12px;margin-top:6px}
+.db-status{padding:10px 14px;border-radius:var(--r);background:var(--tint);color:var(--on-tint);font:600 15px/1.3 var(--font-body)}
+.db-status.ok{background:var(--tint);color:var(--primary)}
+.db-status.error{background:rgba(179,38,30,.15);color:var(--danger)}
+.chips-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:4px 10px;background:var(--tint);color:var(--on-tint);border:1px solid var(--rule);border-radius:18px;font:600 13px/1 var(--font-body);cursor:pointer;white-space:nowrap;user-select:none;-webkit-tap-highlight-color:transparent}
+.chip:active{transform:scale(.96);filter:brightness(.92)}
+.chip.chip-clear{background:transparent;color:var(--danger);border-color:var(--danger);opacity:.85}
+.chip.chip-clear:active{background:rgba(179,38,30,.1);filter:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app"><main id="view" tabindex="-1"></main></div>
+<button class="fab" id="fab" data-add="" aria-label="Add payment" hidden>
+  <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+<div id="sheet"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/*PURE-START*/
+/* ---------- Turso libSQL Database Configuration ---------- */
+/* You can set your credentials here directly, or enter them via the in-app "Connect Turso database" button */
+var TURSO_CONFIG={
+  url:'libsql://construction-tracker-naol-getahun.aws-eu-west-1.turso.io',
+  token:'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTIzNTgwMzgsImlkIjoiMDFhMTUwZGMtMjkwMS03NTgzLWI1ZTItYTNhYjFiY2JiMWRjIiwia2lkIjoiVjJ0czNZRjRuX2pER0JyNFh2U1RBVFFNQ3BtRF9WZG1uTE5kUWpWd2hkWSIsInJpZCI6IjRlMTZkM2YxLWFhODEtNDZmNy1hZmNjLTcwNDY5NDAwY2YzZCJ9.h_xu2hnkgU8wAjWCkRhjeDQ6SfNUQktRbCmBtgplSieLCT0n4-by6H0eFqnmObPMLJ7R-BcV4OVjS7htldrKBA'
+};
+
+var CATS={
+  land:{key:'land',name:'Land',title:'Land History',total:'Total Land',field:'Sent To',placeholder:'e.g. Ato Abebe'},
+  material:{key:'material',name:'Material',title:'Materials History',total:'Total Materials',field:'Material',placeholder:'e.g. Simintoo, Muka'},
+  labor:{key:'labor',name:'Labor',title:'Labor History',total:'Total Labor',field:'Paid To',placeholder:'e.g. Gurmesa'}
+};
+var ORDER=['land','material','labor'];
+var LABOR_DEFAULT='Gurmesa';
+var LAND_PRICE=2200000;
+var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var ETH_MONTHS=['Fulbaana','Onkololeessa','Sadaasa','Muddee','Amajjii','Guraandhala','Bitootessa','Ebla','Caamsaa','Waxabajjii','Adoolessa','Hagayya','Qaammee'];
+var AMOUNTS_BY_CAT={
+  land:[50000,100000,200000],
+  material:[500,1000,2000,5000,10000,20000,50000,100000],
+  labor:[20000,50000,100000,200000],
+  tip:[5000,10000,20000,50000]
+};
+var COMMON_MATERIALS=['Simintoo','Ashawaa','Bolokkeettii','Muka','Mismaara'];
+
+function commonAmountsHTML(targetId,typeOrCat,itemIndex){
+  var list=AMOUNTS_BY_CAT[typeOrCat]||AMOUNTS_BY_CAT.material;
+  var idxAttr=itemIndex!=null?' data-item-idx="'+itemIndex+'"':'';
+  var chips=list.map(function(amt){
+    return '<button type="button" class="chip" data-setamt="'+amt+'" data-target="'+targetId+'"'+idxAttr+'>'+fmtNum.format(amt)+'</button>';
+  }).join('');
+  return '<div class="chips-wrap" aria-label="Common amounts">'+chips+
+    '<button type="button" class="chip chip-clear" data-clearamt="'+targetId+'"'+idxAttr+' aria-label="Clear amount">✕ Clear</button>'+
+    '</div>';
+}
+function commonMaterialsHTML(targetId,itemIndex){
+  var idxAttr=itemIndex!=null?' data-item-idx="'+itemIndex+'"':'';
+  var chips=COMMON_MATERIALS.map(function(mat){
+    return '<button type="button" class="chip" data-setmat="'+esc(mat)+'" data-target="'+targetId+'"'+idxAttr+'>'+esc(mat)+'</button>';
+  }).join('');
+  return '<div class="chips-wrap" aria-label="Common materials">'+chips+
+    '<button type="button" class="chip chip-clear" data-clearmat="'+targetId+'"'+idxAttr+' aria-label="Clear material">✕ Clear</button>'+
+    '</div>';
+}
+function lower(s){return String(s==null?'':s).toLowerCase();}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+var fmtNum=new Intl.NumberFormat('en-US',{maximumFractionDigits:2});
+function toCents(n){return Math.round(Number(n)*100);}
+function fmtCents(c){return fmtNum.format(c/100);}
+function sumCents(list){var t=0;for(var i=0;i<list.length;i++){t+=toCents(list[i].amount_birr)||0;}return t;}
+function titleCase(s){return s.replace(/(^|[\s,\/(\-])(\p{L})/gu,function(m,a,b){return a+b.toUpperCase();});}
+function pad2(n){return String(n).padStart(2,'0');}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function parseDate(s){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||'');return m?{y:+m[1],m:+m[2],d:+m[3]}:null;}
+function sortEntries(list){
+  return list.slice().sort(function(a,b){
+    var c=String(b.date_logged).localeCompare(String(a.date_logged));
+    return c||((b.created_at||0)-(a.created_at||0));
+  });
+}
+/* Ethiopian calendar. Dates are stored as Gregorian ISO strings and converted for display and picking. */
+var ETH_EPOCH=1724220;
+function isoToJdn(iso){var p=parseDate(iso);return Math.floor(Date.UTC(p.y,p.m-1,p.d)/86400000)+2440588;}
+function jdnToIso(j){var d=new Date((j-2440588)*86400000);return d.getUTCFullYear()+'-'+pad2(d.getUTCMonth()+1)+'-'+pad2(d.getUTCDate());}
+function ethToJdn(y,m,d){return ETH_EPOCH+365*(y-1)+Math.floor(y/4)+30*(m-1)+d;}
+function jdnToEth(j){
+  var n=j-ETH_EPOCH-1+365,q=Math.floor(n/1461),r=n-q*1461;
+  var yc=Math.min(3,Math.floor(r/365)),doy=r-365*yc;
+  return {y:4*q+yc,m:Math.floor(doy/30)+1,d:doy%30+1};
+}
+function ethDaysIn(y,m){return m<13?30:(y%4===3?6:5);}
+function isoToEth(iso){return jdnToEth(isoToJdn(iso));}
+function ethToIso(y,m,d){return jdnToIso(ethToJdn(y,m,d));}
+function gregLabel(iso){var p=parseDate(iso);return p?MONTHS[p.m-1]+' '+p.d+', '+p.y:'';}
+function ethParts(iso,curYear){
+  if(!parseDate(iso))return {day:'-',month:'',year:''};
+  var e=isoToEth(iso);
+  return {day:String(e.d),month:ETH_MONTHS[e.m-1],year:e.y!==curYear?String(e.y):''};
+}
+/* Land progress against the agreed land price. paid is in cents. */
+function landProgress(paid){
+  var price=LAND_PRICE*100;
+  var pct=Math.max(0,Math.min(100,paid/price*100));
+  var shown=(paid>0&&pct<1)?'<1':String(Math.round(pct));
+  return {pct:pct,shown:shown,left:price-paid};
+}
+function isFilled(v){return v!=null&&String(v).trim()!=='';}
+function numOf(v){return isFilled(v)?Number(v):NaN;}
+function okAmt(a){return isFinite(a)&&a>0;}
+function cleanText(s){return titleCase(String(s==null?'':s).trim().replace(/\s+/g,' '));}
+/* Turns the form draft into the entries to save. existing is the entry being edited, or null. */
+function buildEntries(d,existing,mkId,now){
+  var c=CATS[d.cat];
+  var out=[],i;
+  if(!parseDate(d.date))return {err:'Pick a date.'};
+  if(!existing&&d.cat==='material'){
+    for(i=0;i<d.items.length;i++){
+      var it=d.items[i];
+      var det=cleanText(it.detail);
+      if(!det&&!isFilled(it.amount))continue;
+      if(!det)return {err:'Material '+(i+1)+': fill in the material name.'};
+      var a=numOf(it.amount);
+      if(!okAmt(a))return {err:'Material '+(i+1)+': enter an amount greater than zero.'};
+      out.push({detail:det,amount:a});
+    }
+    if(!out.length)return {err:'Add at least one material with an amount.'};
+  }else{
+    var d2=cleanText(d.details[d.cat]);
+    var a2=numOf(d.amount);
+    if(!okAmt(a2))return {err:'Enter an amount greater than zero.'};
+    if(!d2)return {err:'Fill in "'+c.field+'".'};
+    out.push({detail:d2,amount:a2});
+    if(!existing&&d.cat==='labor'&&isFilled(d.tip)){
+      var t=numOf(d.tip);
+      if(!okAmt(t))return {err:'The tip must be greater than zero, or leave it empty.'};
+      out.push({detail:d2+' (Tip)',amount:t});
+    }
+  }
+  var n=out.length;
+  return {entries:out.map(function(o,k){
+    var keep=existing&&k===0;
+    return {
+      id:keep?existing.id:mkId(),
+      date_logged:d.date,
+      category:c.name,
+      amount_birr:toCents(o.amount)/100,
+      entry_detail:o.detail,
+      created_at:(keep&&existing.created_at)?existing.created_at:now+(n-1-k)
+    };
+  })};
+}
+/*PURE-END*/
+
+/* ---------- icons ---------- */
+var ICONS={
+  land:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  material:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  labor:'<path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/>',
+  back:'<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  chev:'<path d="m9 18 6-6-6-6"/>',
+  down:'<path d="m6 9 6 6 6-6"/>',
+  more:'<circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>',
+  trash:'<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  pencil:'<path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>'
+};
+function ic(name,extra){
+  return '<svg class="i'+(extra?' '+extra:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[name]+'</svg>';
+}
+
+/* ---------- state ---------- */
+var LS_KEY='construction_log_v1';
+var route=parseHash();
+var draft=null,editId=null,presetCat=null,sheet=null,toastTimer=null;
+var view=document.getElementById('view');
+
+function parseHash(){
+  try{var h=(location.hash||'').replace(/^#/,'');return h||'/';}catch(e){return '/';}
+}
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function newId(){
+  try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();}catch(e){}
+  return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+}
+
+/* ---------- Turso libSQL client (HTTP Pipeline v2) ---------- */
+function cleanTursoUrl(url){
+  if(!url)return '';
+  url=String(url).trim();
+  if(url.indexOf('libsql://')===0)url='https://'+url.slice(9);
+  else if(url.indexOf('http://')!==0&&url.indexOf('https://')!==0)url='https://'+url;
+  return url.replace(/\/+$/,'');
+}
+function tursoArg(val){
+  if(val==null)return {type:'null'};
+  if(typeof val==='number'){
+    return Number.isInteger(val)?{type:'integer',value:String(val)}:{type:'float',value:val};
+  }
+  return {type:'text',value:String(val)};
+}
+function tursoRowsToObjects(result){
+  if(!result||!result.cols||!result.rows)return [];
+  var cols=result.cols.map(function(c){return c.name;});
+  return result.rows.map(function(row){
+    var obj={};
+    for(var i=0;i<cols.length;i++){
+      var cell=row[i];
+      var val=(cell&&typeof cell==='object'&&'value' in cell)?cell.value:cell;
+      var col=cols[i];
+      if(col==='amount_birr'||col==='created_at'){
+        obj[col]=Number(val)||0;
+      }else{
+        obj[col]=val==null?'':String(val);
+      }
+    }
+    return obj;
+  });
+}
+async function tursoPipeline(url,token,requests){
+  var fullUrl=cleanTursoUrl(url)+'/v2/pipeline';
+  var res=await fetch(fullUrl,{
+    method:'POST',
+    headers:{
+      'Authorization':'Bearer '+token,
+      'Content-Type':'application/json'
+    },
+    body:JSON.stringify({
+      baton:null,
+      requests:requests.concat([{type:'close'}])
+    })
+  });
+  if(!res.ok){
+    var txt='';
+    try{txt=await res.text();}catch(e){}
+    var errMsg='HTTP '+res.status;
+    try{
+      var j=JSON.parse(txt);
+      if(j&&j.message)errMsg+=': '+j.message;
+      else if(j&&j.error)errMsg+=': '+(j.error.message||JSON.stringify(j.error));
+      else if(txt)errMsg+=': '+txt;
+    }catch(e){
+      if(txt)errMsg+=': '+txt;
+    }
+    throw new Error(errMsg);
+  }
+  var data=await res.json();
+  if(!data||!Array.isArray(data.results)){
+    throw new Error('Invalid response from Turso');
+  }
+  var errors=[];
+  for(var i=0;i<data.results.length;i++){
+    var r=data.results[i];
+    if(r.type==='error'){
+      errors.push(r.error?(r.error.message||JSON.stringify(r.error)):'Turso query error');
+    }
+  }
+  if(errors.length){
+    throw new Error(errors.join('; '));
+  }
+  return data.results;
+}
+function getTursoCredentials(){
+  var url=(TURSO_CONFIG.url||lsGet('turso_url')||'').trim();
+  var token=(TURSO_CONFIG.token||lsGet('turso_token')||'').trim();
+  return {url:url,token:token};
+}
+async function initTurso(url,token){
+  var cleanUrl=cleanTursoUrl(url);
+  if(!cleanUrl||!token)return false;
+
+  var createTableSql="CREATE TABLE IF NOT EXISTS entries ("+
+    "id TEXT PRIMARY KEY, "+
+    "date_logged TEXT NOT NULL, "+
+    "category TEXT NOT NULL, "+
+    "amount_birr REAL NOT NULL, "+
+    "entry_detail TEXT NOT NULL, "+
+    "created_at INTEGER NOT NULL"+
+  ");";
+  var selectSql="SELECT id, date_logged, category, amount_birr, entry_detail, created_at FROM entries ORDER BY date_logged DESC, created_at DESC;";
+
+  var results=await tursoPipeline(cleanUrl,token,[
+    {type:'execute',stmt:{sql:createTableSql,args:[]}},
+    {type:'execute',stmt:{sql:selectSql,args:[]}}
+  ]);
+
+  var selectRes=results[1]&&results[1].response&&results[1].response.result;
+  var dbEntries=tursoRowsToObjects(selectRes).filter(validEntry);
+
+  // Sync existing local entries to Turso if not yet in DB
+  var localEntries=loadLocal();
+  var dbIds={};
+  for(var i=0;i<dbEntries.length;i++)dbIds[dbEntries[i].id]=true;
+  var missingInDb=localEntries.filter(function(e){return !dbIds[e.id];});
+
+  if(missingInDb.length>0){
+    var syncRequests=missingInDb.map(function(e){
+      return {
+        type:'execute',
+        stmt:{
+          sql:"INSERT OR REPLACE INTO entries (id, date_logged, category, amount_birr, entry_detail, created_at) VALUES (?, ?, ?, ?, ?, ?);",
+          args:[
+            tursoArg(e.id),
+            tursoArg(e.date_logged),
+            tursoArg(e.category),
+            tursoArg(e.amount_birr),
+            tursoArg(e.entry_detail),
+            tursoArg(Math.round(e.created_at||Date.now()))
+          ]
+        }
+      };
+    });
+    try{
+      await tursoPipeline(cleanUrl,token,syncRequests);
+      dbEntries=missingInDb.concat(dbEntries);
+    }catch(err){
+      console.warn('Initial Turso sync warning:',err);
+    }
+  }
+
+  store.entries=dbEntries;
+  store.mode='turso';
+  store.lastError=null;
+  persistLocal();
+  emit();
+  return true;
+}
+async function connectTurso(url,token){
+  var ok=await initTurso(url,token);
+  if(ok){
+    var cleaned=cleanTursoUrl(url);
+    lsSet('turso_url',cleaned);
+    lsSet('turso_token',token.trim());
+    TURSO_CONFIG.url=cleaned;
+    TURSO_CONFIG.token=token.trim();
+  }
+}
+function disconnectTurso(){
+  lsSet('turso_url','');
+  lsSet('turso_token','');
+  TURSO_CONFIG.url='';
+  TURSO_CONFIG.token='';
+  store.mode='local';
+  store.lastError=null;
+}
+
+/* ---------- storage: local cache and Turso sync ---------- */
+function validEntry(e){
+  return !!e&&typeof e==='object'&&typeof e.id==='string'&&!!CATS[lower(e.category)]&&isFinite(Number(e.amount_birr))&&typeof e.date_logged==='string';
+}
+var store={entries:[],mode:'local',lastError:null,ready:null};
+function loadLocal(){
+  try{var a=JSON.parse(lsGet(LS_KEY)||'[]');return Array.isArray(a)?a.filter(validEntry):[];}catch(e){return [];}
+}
+function persistLocal(){lsSet(LS_KEY,JSON.stringify(store.entries));}
+function emit(){
+  if(route==='/'||route.indexOf('/ledger/')===0)render();
+  renderSheet();
+}
+store.entries=loadLocal();
+store.ready=(async function(){
+  var creds=getTursoCredentials();
+  if(creds.url&&creds.token){
+    try{
+      await initTurso(creds.url,creds.token);
+    }catch(err){
+      console.warn('Turso connection failed on load, using local cache:',err);
+      store.mode='local';
+      store.lastError=err.message||'Connection failed';
+      emit();
+    }
+  }else{
+    store.mode='local';
+    emit();
+  }
+})();
+
+store.put=async function(e,isNew){
+  store.entries=isNew?[e].concat(store.entries):store.entries.map(function(x){return x.id===e.id?e:x;});
+  persistLocal();
+  emit();
+
+  var creds=getTursoCredentials();
+  if(creds.url&&creds.token){
+    try{
+      var upsertSql="INSERT INTO entries (id, date_logged, category, amount_birr, entry_detail, created_at) "+
+        "VALUES (?, ?, ?, ?, ?, ?) "+
+        "ON CONFLICT(id) DO UPDATE SET "+
+        "date_logged=excluded.date_logged, "+
+        "category=excluded.category, "+
+        "amount_birr=excluded.amount_birr, "+
+        "entry_detail=excluded.entry_detail, "+
+        "created_at=excluded.created_at;";
+      await tursoPipeline(creds.url,creds.token,[{
+        type:'execute',
+        stmt:{
+          sql:upsertSql,
+          args:[
+            tursoArg(e.id),
+            tursoArg(e.date_logged),
+            tursoArg(e.category),
+            tursoArg(e.amount_birr),
+            tursoArg(e.entry_detail),
+            tursoArg(Math.round(e.created_at||Date.now()))
+          ]
+        }
+      }]);
+      store.mode='turso';
+      store.lastError=null;
+    }catch(err){
+      console.error('Turso put error:',err);
+      store.lastError=err.message;
+      toast('Saved locally (offline).');
+      emit();
+    }
+  }
+};
+store.remove=async function(id){
+  store.entries=store.entries.filter(function(x){return x.id!==id;});
+  persistLocal();
+  emit();
+
+  var creds=getTursoCredentials();
+  if(creds.url&&creds.token){
+    try{
+      await tursoPipeline(creds.url,creds.token,[{
+        type:'execute',
+        stmt:{
+          sql:"DELETE FROM entries WHERE id = ?;",
+          args:[tursoArg(id)]
+        }
+      }]);
+      store.mode='turso';
+      store.lastError=null;
+    }catch(err){
+      console.error('Turso delete error:',err);
+      store.lastError=err.message;
+      toast('Deleted locally (offline).');
+      emit();
+    }
+  }
+};
+
+/* ---------- navigation ---------- */
+function navigate(to){
+  if(to!==route){
+    route=to;
+    try{if(location.hash!=='#'+to)location.hash=to;}catch(e){}
+  }
+  onRoute();
+}
+window.addEventListener('hashchange',function(){
+  var r=parseHash();
+  if(r!==route){route=r;onRoute();}
+});
+function onRoute(){
+  sheet=null;renderSheet();
+  var p=route.split('/');
+  if(p[1]==='add'){editId=null;draft=newDraft();presetCat=null;}
+  else if(p[1]==='edit'){
+    editId=decodeURIComponent(p[2]||'');
+    var e=store.entries.find(function(x){return x.id===editId;});
+    draft=e?editDraft(e):null;
+  }
+  render();
+  try{window.scrollTo(0,0);}catch(err){}
+}
+
+/* ---------- views ---------- */
+function money(c){return '<span>'+fmtCents(c)+'</span> <span class="unit">Birr</span>';}
+function numClass(c){var n=fmtCents(c).length;return n>12?' xlong':(n>9?' long':'');}
+function catOf(e){return CATS[lower(e.category)];}
+function curEthYear(){return isoToEth(todayStr()).y;}
+
+function render(){
+  var p=route.split('/');
+  var html;
+  document.getElementById('fab').hidden=!(p[1]===''||p[1]==null);
+  if(p[1]==='add')html=formView();
+  else if(p[1]==='edit')html=draft?formView():missingView();
+  else if(p[1]==='ledger'&&CATS[p[2]])html=ledgerView(p[2]);
+  else if(p[1]===''||p[1]==null)html=dashboardView();
+  else html=missingView();
+  view.innerHTML=html;
+  if(draft&&(p[1]==='add'||p[1]==='edit'))updateEcho();
+}
+
+function landShare(paid){
+  var lp=landProgress(paid);
+  var note=lp.left>0?'Remaining '+fmtCents(lp.left)+' Birr':(lp.left===0?'Fully paid':'Over by '+fmtCents(-lp.left)+' Birr');
+  return '<span class="share"><span class="track" role="progressbar" aria-label="Land paid" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(lp.pct)+'"><span class="fill" style="width:'+lp.pct.toFixed(2)+'%"></span></span><span class="pct">'+lp.shown+'%</span></span>'+
+    '<span class="share-note">'+note+'</span>';
+}
+
+function dashboardView(){
+  var all=store.entries;
+  var total=sumCents(all);
+  var per=ORDER.map(function(k){
+    var list=all.filter(function(e){return lower(e.category)===k;});
+    return {k:k,c:sumCents(list)};
+  });
+  var recent=sortEntries(all).slice(0,6);
+  var cur=curEthYear();
+  var cards=per.map(function(x){
+    var c=CATS[x.k];
+    return '<button class="card" data-go="/ledger/'+x.k+'" aria-label="'+c.name+' '+fmtCents(x.c)+' Birr, open ledger">'+
+      '<span class="card-row">'+
+        '<span class="ico">'+ic(x.k)+'</span>'+
+        '<span><span class="card-name">'+c.name+'</span><span class="card-amt">'+money(x.c)+'</span></span>'+
+        ic('chev')+
+      '</span>'+
+      (x.k==='land'?landShare(x.c):'')+
+    '</button>';
+  }).join('');
+  var activity;
+  if(!recent.length){
+    activity='<div class="empty"><p class="empty-t">No payments logged yet</p><p>Tap the green + button to record your first payment.</p></div>';
+  }else{
+    activity='<ul class="plain">'+recent.map(function(e){
+      var c=catOf(e);var dp=ethParts(e.date_logged,cur);
+      var when=dp.day+' '+dp.month+(dp.year?' '+dp.year:'');
+      return '<li><button class="act" data-go="/ledger/'+c.key+'">'+
+        '<span><span class="act-detail">'+esc(e.entry_detail)+'</span><span class="act-meta">'+c.name+' · '+when+'</span></span>'+
+        '<span class="act-amt">'+fmtCents(toCents(e.amount_birr))+' <span class="unit">Birr</span></span>'+
+      '</button></li>';
+    }).join('')+'</ul>';
+  }
+  var dbInfo=getTursoCredentials();
+  var isConnected=store.mode==='turso'&&dbInfo.url;
+  var status=isConnected?
+    '<p class="note" style="color:var(--primary);font-weight:600">● Synced</p>':
+    '<p class="note"><span>📱 Stored on this device only</span> · <button type="button" class="btn-link" data-dbsettings>Connect Turso database</button></p>';
+  return '<div class="top"><h1>Construction Expense Tracker</h1></div>'+
+    '<section class="hero" aria-label="Total spent"><p class="eyebrow">Total spent</p>'+
+      '<p class="hero-num'+numClass(total)+'">'+money(total)+'</p>'+
+      '<p class="hero-sub">'+all.length+' payment'+(all.length===1?'':'s')+' logged</p></section>'+
+    '<h2 class="sec">By category</h2><div class="cards">'+cards+'</div>'+
+    '<h2 class="sec">Recent activity</h2>'+activity+
+    status;
+}
+
+function ledgerView(key){
+  var c=CATS[key];
+  var list=sortEntries(store.entries.filter(function(e){return lower(e.category)===key;}));
+  var total=sumCents(list);
+  var cur=curEthYear();
+  var head='<header class="bar"><div class="bar-row"><button class="back" data-go="/" aria-label="Back to dashboard">'+ic('back')+'</button><h1>'+c.title+'</h1></div>'+
+    '<div class="bar-total"><span class="eyebrow">'+c.total+'</span><strong>'+money(total)+'</strong></div></header>';
+  if(!list.length){
+    return head+'<div class="empty"><p class="empty-t">No '+c.name.toLowerCase()+' payments yet</p>'+
+      '<button class="btn-primary sm" data-add="'+key+'">Add '+c.name+' payment</button></div>';
+  }
+  var rows=list.map(function(e){
+    var dp=ethParts(e.date_logged,cur);
+    return '<li class="lrow"><span class="ldate"><span class="dd">'+dp.day+'</span><span class="mm">'+dp.month+'</span>'+(dp.year?'<span class="mm">'+dp.year+'</span>':'')+'</span>'+
+      '<span class="ldetail">'+esc(e.entry_detail)+'</span>'+
+      '<span class="lamt">'+fmtCents(toCents(e.amount_birr))+'</span>'+
+      '<button class="kebab" data-menu="'+esc(e.id)+'" aria-label="Options for '+esc(e.entry_detail)+'">'+ic('more')+'</button></li>';
+  }).join('');
+  return head+'<div class="lhead" aria-hidden="true"><span>Date</span><span>'+c.field+'</span><span>Birr</span><span></span></div><ul class="plain">'+rows+'</ul>';
+}
+
+function missingView(){
+  return '<header class="bar"><div class="bar-row"><button class="back" data-go="/" aria-label="Back to dashboard">'+ic('back')+'</button><h1>Not found</h1></div></header>'+
+    '<div class="empty"><p class="empty-t">That page is not here</p><button class="btn-primary sm" data-go="/">Go to dashboard</button></div>';
+}
+
+/* ---------- entry form ---------- */
+function blankDetails(){return {land:'',material:'',labor:LABOR_DEFAULT};}
+function newDraft(){
+  var last=lsGet('last_cat');
+  var cat=presetCat||(CATS[last]?last:'labor');
+  return {date:todayStr(),cat:cat,amount:'',tip:'',details:blankDetails(),items:[{detail:'',amount:''}],err:''};
+}
+function editDraft(e){
+  var k=lower(e.category);
+  var d={date:parseDate(e.date_logged)?e.date_logged:todayStr(),cat:k,amount:String(e.amount_birr),tip:'',details:blankDetails(),items:[{detail:'',amount:''}],err:''};
+  d.details[k]=e.entry_detail;
+  return d;
+}
+function isMulti(){return !!draft&&draft.cat==='material'&&!editId;}
+function ampInput(id,val,attrs){
+  return '<div class="amt-wrap"><input id="'+id+'" type="number" inputmode="decimal" min="0" step="any" placeholder="0" value="'+esc(val)+'" autocomplete="off" enterkeyhint="next"'+(attrs||'')+'><span class="amt-unit">Birr</span></div>';
+}
+function selBox(id,label,optionsHtml){
+  return '<span class="sel"><select id="'+id+'" aria-label="'+label+'">'+optionsHtml+'</select>'+ic('down')+'</span>';
+}
+function optionList(list,selected,labelFn){
+  return list.map(function(v){return '<option value="'+v+'"'+(v===selected?' selected':'')+'>'+labelFn(v)+'</option>';}).join('');
+}
+function dateFieldInner(){
+  var e=isoToEth(draft.date),cur=curEthYear();
+  var years=[],days=[],months=[],i;
+  for(i=cur-3;i<=cur+1;i++)years.push(i);
+  if(years.indexOf(e.y)<0){years.push(e.y);years.sort(function(a,b){return a-b;});}
+  for(i=1;i<=ethDaysIn(e.y,e.m);i++)days.push(i);
+  for(i=1;i<=13;i++)months.push(i);
+  return '<span class="lbl" id="date-l">Date (Ethiopian calendar)</span>'+
+    '<div class="dsel" role="group" aria-labelledby="date-l">'+
+      selBox('f-d','Day',optionList(days,e.d,String))+
+      selBox('f-m','Month',optionList(months,e.m,function(m){return ETH_MONTHS[m-1];}))+
+      selBox('f-y','Year',optionList(years,e.y,String))+
+    '</div>'+
+    '<p class="echo" id="date-echo">= '+gregLabel(draft.date)+'</p>';
+}
+function onDatePick(focusId){
+  var y=+document.getElementById('f-y').value,m=+document.getElementById('f-m').value,d=+document.getElementById('f-d').value;
+  var max=ethDaysIn(y,m);
+  if(d>max)d=max;
+  draft.date=ethToIso(y,m,d);
+  document.getElementById('date-field').innerHTML=dateFieldInner();
+  var el=document.getElementById(focusId);if(el)el.focus();
+}
+function detailFieldHTML(){
+  var c=CATS[draft.cat];
+  var matChips=draft.cat==='material'?commonMaterialsHTML('f-detail'):'';
+  return '<label for="f-detail">'+c.field+':</label>'+
+    '<input id="f-detail" class="cap" type="text" value="'+esc(draft.details[draft.cat])+'" placeholder="'+esc(c.placeholder)+'" autocomplete="off" autocapitalize="words" enterkeyhint="next">'+
+    matChips;
+}
+function itemsHTML(){
+  var rows=draft.items.map(function(it,i){
+    return '<div class="item"><div class="item-head"><span class="item-n">Material '+(i+1)+'</span>'+
+      (draft.items.length>1?'<button type="button" class="rm" data-rmitem="'+i+'" aria-label="Remove material '+(i+1)+'">'+ic('x')+'</button>':'')+'</div>'+
+      '<div class="field"><label for="m-d-'+i+'">Material:</label><input id="m-d-'+i+'" class="cap" type="text" data-item="detail" data-i="'+i+'" value="'+esc(it.detail)+'" placeholder="e.g. Simintoo, Muka" autocomplete="off" autocapitalize="words" enterkeyhint="next">'+
+        commonMaterialsHTML('m-d-'+i,i)+
+      '</div>'+
+      '<div class="field"><label for="m-a-'+i+'">Amount</label>'+ampInput('m-a-'+i,it.amount,' data-item="amount" data-i="'+i+'"')+
+        commonAmountsHTML('m-a-'+i,'material',i)+
+      '</div></div>';
+  }).join('');
+  return '<div class="items">'+rows+'</div>'+
+    '<button type="button" class="btn-secondary" data-additem>'+ic('plus')+'Add another material</button>'+
+    '<p class="echo" id="items-total"></p>';
+}
+function bodyHTML(){
+  if(isMulti())return itemsHTML();
+  var h='<div class="field"><label for="f-amt">Amount</label>'+ampInput('f-amt',draft.amount)+
+    commonAmountsHTML('f-amt',draft.cat)+
+    '<p class="echo" id="echo"></p></div>'+
+    '<div class="field" id="detail-field">'+detailFieldHTML()+'</div>';
+  if(draft.cat==='labor'&&!editId){
+    h+='<div class="field"><label for="f-tip">Tip (optional)</label>'+ampInput('f-tip',draft.tip)+
+      commonAmountsHTML('f-tip','tip')+
+      '<p class="echo" id="echo-tip"></p></div>';
+  }
+  return h;
+}
+function reRenderBody(){
+  var b=document.getElementById('form-body');
+  if(b){b.innerHTML=bodyHTML();updateEcho();}
+}
+function formView(){
+  var isEdit=!!editId;
+  var backTo=isEdit?'/ledger/'+draft.cat:'/';
+  var radios=ORDER.map(function(k){
+    return '<label><input type="radio" name="cat" value="'+k+'"'+(draft.cat===k?' checked':'')+'><span>'+ic(k)+CATS[k].name+ic('check','tick')+'</span></label>';
+  }).join('');
+  return '<header class="bar"><div class="bar-row"><button class="back" data-go="'+backTo+'" aria-label="Back">'+ic('back')+'</button><h1>'+(isEdit?'Edit payment':'New payment')+'</h1></div></header>'+
+    '<form id="f" class="form" novalidate>'+
+      '<div class="field" id="date-field">'+dateFieldInner()+'</div>'+
+      '<fieldset class="seg-wrap"><legend>Category</legend><div class="seg" role="radiogroup" aria-label="Category">'+radios+'</div></fieldset>'+
+      '<div class="form-body" id="form-body">'+bodyHTML()+'</div>'+
+      '<p class="err" id="ferr" role="alert"'+(draft.err?'':' hidden')+'>'+esc(draft.err)+'</p>'+
+      '<button class="btn-primary" type="submit" id="save">Save Payment</button>'+
+    '</form>';
+}
+function setEcho(id,v){
+  var el=document.getElementById(id);if(!el)return;
+  var n=Number(v);
+  el.textContent=(isFilled(v)&&isFinite(n)&&n>0)?'= '+fmtCents(toCents(n))+' Birr':'';
+}
+function updateEcho(){
+  if(!draft)return;
+  setEcho('echo',draft.amount);
+  setEcho('echo-tip',draft.tip);
+  var t=document.getElementById('items-total');
+  if(t){
+    var cents=0,k=0;
+    draft.items.forEach(function(it){var n=numOf(it.amount);if(okAmt(n)){cents+=toCents(n);k++;}});
+    t.textContent=k?'Total: '+fmtCents(cents)+' Birr':'';
+  }
+}
+function showErr(msg){
+  draft.err=msg;
+  var el=document.getElementById('ferr');
+  if(el){el.textContent=msg;el.hidden=!msg;}
+}
+async function save(){
+  if(!draft)return;
+  var existing=editId?store.entries.find(function(x){return x.id===editId;}):null;
+  if(editId&&!existing){showErr('This payment no longer exists.');return;}
+  var r=buildEntries(draft,existing,newId,Date.now());
+  if(r.err){showErr(r.err);return;}
+  showErr('');
+  var btn=document.getElementById('save');
+  btn.disabled=true;btn.textContent='Saving...';
+  var n=r.entries.length,saved=0;
+  try{
+    for(var i=0;i<n;i++){await store.put(r.entries[i],!existing);saved++;}
+  }catch(e){
+    if(saved>0){
+      toast('Only '+saved+' of '+n+' saved. Check the ledger.');
+      navigate('/');
+      return;
+    }
+    var b=document.getElementById('save');
+    if(b){b.disabled=false;b.textContent='Save Payment';}
+    showErr('Could not save. Check your connection and tap Save Payment again.');
+    return;
+  }
+  lsSet('last_cat',draft.cat);
+  var msg=existing?'Payment updated':
+          (n===1?'Payment saved':(draft.cat==='labor'?'Payment and tip saved':n+' materials saved'));
+  var back=existing?'/ledger/'+r.entries[0].category.toLowerCase():'/';
+  toast(msg);
+  navigate(back);
+}
+
+/* ---------- sheet and toast ---------- */
+function renderSheet(){
+  var host=document.getElementById('sheet');
+  if(!sheet){host.innerHTML='';return;}
+  var body;
+  if(sheet.type==='db'){
+    var creds=getTursoCredentials();
+    var isConn=store.mode==='turso'&&creds.url;
+    var statusText=isConn?'Connected to Turso Cloud (libSQL)':
+                   (store.lastError?'Connection error: '+esc(store.lastError):'Using local offline storage (not connected to cloud)');
+    var statusClass=isConn?'db-status ok':(store.lastError?'db-status error':'db-status');
+
+    body='<p id="sh-t" class="sheet-t">Turso libSQL Database</p>'+
+      '<p class="sheet-p">Connect your remote Turso database to sync your construction expenses across all devices.</p>'+
+      '<div class="'+statusClass+'">'+statusText+'</div>'+
+      '<form id="db-form" class="db-form">'+
+        '<div class="field">'+
+          '<label for="turso-url-input">Database URL</label>'+
+          '<input id="turso-url-input" type="text" placeholder="https://my-db.turso.io" value="'+esc(creds.url)+'" autocomplete="off" spellcheck="false">'+
+        '</div>'+
+        '<div class="field">'+
+          '<label for="turso-token-input">Auth Token</label>'+
+          '<input id="turso-token-input" type="password" placeholder="eyJhbGci..." value="'+esc(creds.token)+'" autocomplete="off" spellcheck="false">'+
+        '</div>'+
+        '<button class="btn-primary" type="submit" id="db-save-btn">Save &amp; Connect</button>'+
+        (isConn?'<button type="button" class="btn-secondary" data-dbdisconnect>Disconnect (Use Local Only)</button>':'')+
+        '<button type="button" class="sbtn" data-close>Close</button>'+
+      '</form>';
+  }else{
+    var e=store.entries.find(function(x){return x.id===sheet.id;});
+    if(!e){sheet=null;host.innerHTML='';return;}
+    var line=esc(e.entry_detail)+' · '+fmtCents(toCents(e.amount_birr))+' Birr';
+    if(sheet.step==='confirm'){
+      body='<p id="sh-t" class="sheet-t">Delete this payment?</p><p class="sheet-p">'+line+'. This cannot be undone.</p>'+
+        '<button class="sbtn danger" data-delete="'+esc(e.id)+'">'+ic('trash')+'Yes, delete</button>'+
+        '<button class="sbtn" data-close>Keep it</button>';
+    }else{
+      body='<p id="sh-t" class="sheet-t">'+line+'</p>'+
+        '<button class="sbtn" data-edit="'+esc(e.id)+'">'+ic('pencil')+'Edit payment</button>'+
+        '<button class="sbtn" data-delask>'+ic('trash')+'Delete payment</button>'+
+        '<button class="sbtn" data-close>Cancel</button>';
+    }
+  }
+  host.innerHTML='<div class="scrim" data-scrim><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t">'+body+'</div></div>';
+  var first=host.querySelector('input, .sbtn, .btn-primary');if(first)first.focus();
+}
+function closeSheet(){
+  var id=(sheet&&sheet.type!=='db')?sheet.id:null;
+  sheet=null;renderSheet();
+  if(id){var k=document.querySelector('[data-menu="'+id.replace(/"/g,'')+'"]');if(k)k.focus();}
+}
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.innerHTML=ic('check')+'<span>'+esc(msg)+'</span>';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove('show');},2600);
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',function(ev){
+  var t=ev.target.closest('[data-go],[data-add],[data-additem],[data-rmitem],[data-menu],[data-edit],[data-delask],[data-delete],[data-close],[data-scrim],[data-dbsettings],[data-dbdisconnect],[data-setamt],[data-clearamt],[data-setmat],[data-clearmat]');
+  if(!t)return;
+  if(t.hasAttribute('data-scrim')){if(ev.target===t)closeSheet();return;}
+  if(t.hasAttribute('data-go')){navigate(t.getAttribute('data-go'));return;}
+  if(t.hasAttribute('data-add')){presetCat=CATS[t.getAttribute('data-add')]?t.getAttribute('data-add'):null;navigate('/add');return;}
+  if(t.hasAttribute('data-additem')){
+    draft.items.push({detail:'',amount:''});reRenderBody();
+    var nd=document.getElementById('m-d-'+(draft.items.length-1));if(nd)nd.focus();
+    return;
+  }
+  if(t.hasAttribute('data-rmitem')){
+    draft.items.splice(+t.getAttribute('data-rmitem'),1);
+    if(!draft.items.length)draft.items.push({detail:'',amount:''});
+    reRenderBody();return;
+  }
+  if(t.hasAttribute('data-setamt')){
+    var addVal=Number(t.getAttribute('data-setamt'))||0;
+    var tgt=t.getAttribute('data-target');
+    var idx=t.getAttribute('data-item-idx');
+    var inp=document.getElementById(tgt);
+    var curVal=0;
+    if(inp){
+      curVal=Number(inp.value)||0;
+      var newVal=curVal+addVal;
+      inp.value=newVal;
+      if(idx!=null&&draft&&draft.items&&draft.items[+idx]){
+        draft.items[+idx].amount=String(newVal);
+      }else if(tgt==='f-amt'&&draft){
+        draft.amount=String(newVal);
+      }else if(tgt==='f-tip'&&draft){
+        draft.tip=String(newVal);
+      }
+    }
+    updateEcho();
+    return;
+  }
+  if(t.hasAttribute('data-clearamt')){
+    var tgt=t.getAttribute('data-clearamt');
+    var idx=t.getAttribute('data-item-idx');
+    var inp=document.getElementById(tgt);
+    if(inp){inp.value='';inp.focus();}
+    if(idx!=null&&draft&&draft.items&&draft.items[+idx]){
+      draft.items[+idx].amount='';
+    }else if(tgt==='f-amt'&&draft){
+      draft.amount='';
+    }else if(tgt==='f-tip'&&draft){
+      draft.tip='';
+    }
+    updateEcho();
+    return;
+  }
+  if(t.hasAttribute('data-setmat')){
+    var v=t.getAttribute('data-setmat');
+    var tgt=t.getAttribute('data-target');
+    var idx=t.getAttribute('data-item-idx');
+    var inp=document.getElementById(tgt);
+    if(inp){inp.value=v;}
+    if(idx!=null&&draft&&draft.items&&draft.items[+idx]){
+      draft.items[+idx].detail=v;
+    }else if(draft){
+      draft.details[draft.cat]=v;
+    }
+    return;
+  }
+  if(t.hasAttribute('data-clearmat')){
+    var tgt=t.getAttribute('data-clearmat');
+    var idx=t.getAttribute('data-item-idx');
+    var inp=document.getElementById(tgt);
+    if(inp){inp.value='';inp.focus();}
+    if(idx!=null&&draft&&draft.items&&draft.items[+idx]){
+      draft.items[+idx].detail='';
+    }else if(draft){
+      draft.details[draft.cat]='';
+    }
+    return;
+  }
+  if(t.hasAttribute('data-menu')){sheet={id:t.getAttribute('data-menu'),step:'menu'};renderSheet();return;}
+  if(t.hasAttribute('data-edit')){var id=t.getAttribute('data-edit');sheet=null;renderSheet();navigate('/edit/'+encodeURIComponent(id));return;}
+  if(t.hasAttribute('data-delask')){sheet.step='confirm';renderSheet();return;}
+  if(t.hasAttribute('data-close')){closeSheet();return;}
+  if(t.hasAttribute('data-dbsettings')){sheet={type:'db'};renderSheet();return;}
+  if(t.hasAttribute('data-dbdisconnect')){
+    disconnectTurso();
+    sheet=null;
+    renderSheet();
+    toast('Disconnected from Turso. Using local storage.');
+    emit();
+    return;
+  }
+  if(t.hasAttribute('data-delete')){
+    var did=t.getAttribute('data-delete');
+    t.disabled=true;
+    store.remove(did).then(function(){sheet=null;renderSheet();toast('Payment deleted');})
+      .catch(function(){t.disabled=false;toast('Could not delete. Try again.');});
+  }
+});
+document.addEventListener('keydown',function(ev){
+  if(ev.key==='Escape'&&sheet){closeSheet();return;}
+  /* Enter moves to the next field instead of saving by accident. */
+  if(ev.key==='Enter'&&ev.target&&ev.target.tagName==='INPUT'&&ev.target.form&&ev.target.form.id==='f'){
+    ev.preventDefault();
+    var inputs=Array.prototype.slice.call(ev.target.form.querySelectorAll('input:not([type=radio])'));
+    var at=inputs.indexOf(ev.target);
+    if(at>-1&&at<inputs.length-1)inputs[at+1].focus();else ev.target.blur();
+  }
+});
+view.addEventListener('input',function(ev){
+  var t=ev.target;if(!draft)return;
+  var item=t.getAttribute&&t.getAttribute('data-item');
+  if(t.id==='f-amt'){draft.amount=t.value;updateEcho();}
+  else if(t.id==='f-tip'){draft.tip=t.value;updateEcho();}
+  else if(t.id==='f-detail')draft.details[draft.cat]=t.value;
+  else if(item){
+    var row=draft.items[+t.getAttribute('data-i')];
+    if(row){row[item]=t.value;updateEcho();}
+  }
+});
+view.addEventListener('change',function(ev){
+  var t=ev.target;
+  if(!draft)return;
+  if(t.id==='f-d'||t.id==='f-m'||t.id==='f-y'){onDatePick(t.id);return;}
+  if(t.name==='cat'&&CATS[t.value]){
+    draft.cat=t.value;
+    reRenderBody();
+  }
+});
+view.addEventListener('submit',function(ev){
+  if(ev.target.id==='f'){ev.preventDefault();save();}
+});
+document.addEventListener('submit',async function(ev){
+  if(ev.target.id==='db-form'){
+    ev.preventDefault();
+    var urlInput=document.getElementById('turso-url-input');
+    var tokenInput=document.getElementById('turso-token-input');
+    var btn=document.getElementById('db-save-btn');
+    var url=urlInput?urlInput.value.trim():'';
+    var token=tokenInput?tokenInput.value.trim():'';
+    if(!url||!token){
+      toast('Please enter both Database URL and Auth Token.');
+      return;
+    }
+    if(btn){btn.disabled=true;btn.textContent='Connecting...';}
+    try{
+      await connectTurso(url,token);
+      sheet=null;
+      renderSheet();
+      toast('Connected to Turso database!');
+    }catch(err){
+      if(btn){btn.disabled=false;btn.textContent='Save & Connect';}
+      var statusEl=document.querySelector('.db-status');
+      if(statusEl){
+        statusEl.className='db-status error';
+        statusEl.textContent='Error: '+(err.message||'Connection failed');
+      }else{
+        toast('Connection failed: '+(err.message||'Check credentials'));
+      }
+    }
+  }
+});
+
+onRoute();
+})();
+</script>
+
+</body></html>
